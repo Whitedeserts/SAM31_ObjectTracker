@@ -1,8 +1,5 @@
 # SAM 3.1 Text Prompt Tracker for ArcGIS Pro
 
-Created by **[Mohamed Ahmed](https://mohamedahmed.ca)**.
-Original ArcGIS toolbox and integration; powered by Meta SAM 3.1.
-
 Detect objects from text prompts and track them through local video using SAM 3.1
 Object Multiplex. Supports multiple categories, stable external track IDs,
 streaming video processing, CSV export, annotated MP4 and optional pixel-space
@@ -67,3 +64,8 @@ retain their [MIT notice](licenses/CLIP_LICENSE). These components are not
 relicensed under Apache 2.0, and their restrictions continue to apply.
 See [LICENSE_SCOPE.md](LICENSE_SCOPE.md) and
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the boundaries and attribution.
+
+## Credits
+
+Created by **[Mohamed Ahmed](https://mohamedahmed.ca)**.
+Original ArcGIS toolbox and integration; powered by Meta SAM 3.1.
