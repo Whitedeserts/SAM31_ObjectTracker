@@ -52,12 +52,13 @@ DLPK's native ArcGIS object-tracker adapter is distributed separately.
 
 ## Licensing
 
-Original toolbox, integration and documentation contributions are licensed under
-[CC BY-NC-SA 4.0](LICENSE): attribution is required, use must be noncommercial,
-and shared adaptations must follow the license's ShareAlike terms.
+Independently authored toolbox, integration and documentation contributions are
+licensed under [Apache License 2.0](LICENSE), permitting commercial and
+noncommercial use, modification and redistribution subject to its conditions.
 
-Meta SAM components and the separately distributed model retain the
-[SAM License](licenses/SAM_LICENSE). Adapted CLIP components retain their
-[MIT notice](licenses/CLIP_LICENSE). These components are not relicensed under CC.
+Meta SAM components, SAM-derived modifications and the separately distributed
+model retain the [SAM License](licenses/SAM_LICENSE). Adapted CLIP components
+retain their [MIT notice](licenses/CLIP_LICENSE). These components are not
+relicensed under Apache 2.0, and their restrictions continue to apply.
 See [LICENSE_SCOPE.md](LICENSE_SCOPE.md) and
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the boundaries and attribution.
