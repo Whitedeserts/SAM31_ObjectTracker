@@ -1,0 +1,33 @@
+<metadata xml:lang="en">
+	<Esri><CreaDate>20260913</CreaDate><CreaTime>11532900</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce></Esri>
+	<tool name="SAM31TextPromptTrackingTool" displayname="Track Objects by Text Prompt (SAM 3.1)" toolboxalias="sam31TextPromptTracking">
+		<summary>Find and track objects in a local video with SAM 3.1. Choose a video, prompt, output folder and run name, then run a short trial or the full video. CSV is enabled by default. Pixel-space feature-class export is optional.</summary>
+		<usage>Tracking advances every frame. Larger detection intervals reduce searches for new objects but delay discovery. Feature-class polygons are in video pixels, not geographic coordinates. Annotated video is a derived review copy without KLV/MISB metadata. The source video is not rewritten. A trial limits processed frames, but first-use model preparation still applies.</usage>
+		<parameters>
+			<param name="in_video"><dialogReference>Local video file. Local HLS/DASH inputs require their segment files.</dialogReference></param>
+			<param name="text_prompt"><dialogReference>Describe the objects to find, for example truck or person.</dialogReference></param>
+			<param name="output_folder"><dialogReference>Existing folder for generated CSV, annotated video and optional geodatabase outputs.</dialogReference></param>
+			<param name="model_package"><dialogReference>Select a local compatible SAM 3.1 .dlpk. Verified checkpoint and vocabulary assets are cached per user. The toolbox uses its shipped runtime; no files are uploaded.</dialogReference></param>
+			<param name="run_name"><dialogReference>Base name for generated outputs. Use letters, numbers and underscores, starting with a letter. Use a new name to preserve earlier runs.</dialogReference></param>
+			<param name="run_mode"><dialogReference>Full video processes to the end. Short trial processes the first Trial Frames frames.</dialogReference></param>
+			<param name="max_frames"><dialogReference>Number of initial frames to process in Short trial mode; default 90. Ignored in Full video mode. Model preparation time is unchanged.</dialogReference></param>
+			<param name="export_csv"><dialogReference>Save tracking attributes as a portable CSV table. Enabled by default.</dialogReference></param>
+			<param name="save_annotated_video"><dialogReference>Save a visual review video with annotations. Disabling reduces drawing and encoding work. The derived video has no KLV/MISB metadata.</dialogReference></param>
+			<param name="export_features"><dialogReference>Optionally save bounding-box polygons in a file geodatabase. Coordinates are video pixels, not real-world map locations.</dialogReference></param>
+			<param name="csv_path"><dialogReference>Generated from Output Folder and Run Name. Override only when a different CSV path is needed.</dialogReference></param>
+			<param name="annotated_video_path"><dialogReference>Generated MP4 review-video path. Must be different from the input video and other outputs.</dialogReference></param>
+			<param name="out_feature_class"><dialogReference>Optional pixel-space output inside a file geodatabase. Not georeferenced. Disabled unless feature-class export is selected.</dialogReference></param>
+			<param name="detection_interval"><dialogReference>Frames between searches for new objects. Larger values reduce detection work but delay discovery. Existing objects track every frame.</dialogReference></param>
+			<param name="max_objects"><dialogReference>Maximum objects tracked simultaneously, up to 16. More than 16 total IDs may be created over the video.</dialogReference></param>
+			<param name="confidence_threshold"><dialogReference>Detection confidence threshold from 0 to 1. Higher values reject more candidates but may miss difficult objects.</dialogReference></param>
+			<param name="lost_grace_frames"><dialogReference>Missing frames to retain an occluded object's ID before termination. Zero terminates on the first missing observation.</dialogReference></param>
+			<param name="out_of_frame_grace_frames"><dialogReference>Missing frames to retain an object last seen at an image edge before termination.</dialogReference></param>
+			<param name="min_valid_mask_area"><dialogReference>Minimum mask size in pixels for a valid visible observation.</dialogReference></param>
+			<param name="min_track_confidence"><dialogReference>Optional additional confidence threshold for visible tracking observations. Blank uses the tracker threshold.</dialogReference></param>
+			<param name="iou_threshold"><dialogReference>Overlap threshold used to match detections to existing tracks and avoid duplicates.</dialogReference></param>
+			<param name="centroid_threshold"><dialogReference>Maximum normalized center distance used for duplicate matching.</dialogReference></param>
+			<param name="hide_box_when_lost"><dialogReference>Lost tracks have null positions and are not drawn as stale boxes.</dialogReference></param>
+			<param name="show_lost_status"><dialogReference>Show a small status panel listing temporarily lost or out-of-frame tracks.</dialogReference></param>
+		</parameters>
+	</tool>
+</metadata>

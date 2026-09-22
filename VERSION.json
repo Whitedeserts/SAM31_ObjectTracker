@@ -1,0 +1,28 @@
+{
+  "package_version": "0.4.10",
+  "release_status": "release-candidate",
+  "sam3_git_repo": "https://github.com/facebookresearch/sam3",
+  "sam3_git_commit": "660a5e9e1b8b4c02c0ad97229b88a09a6e4ff5b7",
+  "sam3_package_version": "0.1.0",
+  "checkpoint": "sam3.1_multiplex.pt",
+  "checkpoint_bytes": 3502755717,
+  "checkpoint_sha256": "0567debeec80ba4ac6369540c6c248025283cb3ff2b92827509e57e2b3541cb6",
+  "bpe_vocab": "bpe_simple_vocab_16e6.txt.gz",
+  "bpe_vocab_sha256": "924691ac288e54409236115652ad4aa250f48203de50a9e4722a6ecd48d6804a",
+  "image_size": 1008,
+  "multiplex_count": 16,
+  "num_maskmem": 7,
+  "builder": "sam3.model_builder.build_sam3_multiplex_video_model",
+  "builder_args": {
+    "multiplex_count": 16,
+    "use_fa3": false,
+    "use_rope_real": true,
+    "strict_state_dict_loading": false,
+    "compile": false,
+    "load_from_HF": false
+  },
+  "checkpoint_source": "https://huggingface.co/facebook/sam3.1",
+  "arcgis_pro_tested": "3.7",
+  "configuration_role": "provenance only",
+  "runtime_baseline": "0.4.9"
+}
