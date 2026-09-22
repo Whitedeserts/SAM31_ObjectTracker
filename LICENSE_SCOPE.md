@@ -2,6 +2,9 @@
 
 ## Original toolbox and integration
 
+Copyright 2026 [Mohamed Ahmed](https://mohamedahmed.ca).
+See [NOTICE](NOTICE) for project attribution.
+
 The independently authored contributions to this project's ArcGIS toolbox,
 integration code and accompanying documentation are licensed under the
 **Apache License, Version 2.0**. The full license is in [LICENSE](LICENSE).

@@ -5,6 +5,7 @@
 - `SAM31_ObjectTracker/sam3/`: pinned SAM implementation and required inference helpers.
 - `SAM31_ObjectTracker/sam31_runtime/`: model loading and tracking session integration.
 - Version metadata, user/environment guides, modification notes and third-party licenses.
+- `NOTICE`: creator credit and copyright attribution for the original toolbox.
 
 External prerequisites: supported ArcGIS Pro deep-learning environment, NVIDIA CUDA
 GPU, compatible separately distributed SAM 3.1 DLPK, and local input video.
