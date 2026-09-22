@@ -20,6 +20,10 @@ Pillow, OpenCV, timm, ftfy, regex, iopath, tqdm, einops, huggingface_hub and
 psutil for memory diagnostics. FFmpeg/ffprobe are resolved from the active
 environment or PATH. No inference-time downloads are performed.
 
+ArcGIS manages this environment; no lockfile is supplied. Avoid general dependency
+upgrades in the ArcGIS environment. Optional Triton/FlashAttention paths are guarded
+on Windows. Required external dependencies are not bundled or installed by the tool.
+
 ## Installation and model selection
 
 Extract the entire ZIP; folder names may contain spaces. In Catalog, right-click

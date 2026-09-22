@@ -21,4 +21,5 @@ bounded streaming state. The legacy full-video API calls the initializer directl
 it is retained for compatibility and is not used by the toolbox.
 
 The project-specific session adapter is separate from these upstream patches.
-See the release's `RUNTIME_NOTES.md` for memory retention and multiplex slot behavior.
+See the [user guide](../USER_GUIDE.md#inputs-and-controls) for memory retention
+and multiplex slot behavior.
