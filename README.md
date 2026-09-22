@@ -39,4 +39,4 @@ Meta SAM and CLIP components retain their own terms. See
 [license scope and third-party notices](licenses/THIRD_PARTY_NOTICES.md) and
 [NOTICE](licenses/NOTICE).
 
-Developed by [Mohamed Ahmed](https://mohamedahmed.ca).
+Developed by [Mohamed Ahmed](https://mohamedahmed.ca), Esri Canada Education and Research Group.
