@@ -2,7 +2,7 @@
 
 Detect objects from text prompts and track them through local video using SAM 3.1
 Object Multiplex. Export tracking observations to CSV, annotated MP4 and optional
-pixel-space features.
+geospatial detection points from compatible FMV metadata.
 
 ## Quick start
 
@@ -26,7 +26,8 @@ model requirements, parameters, outputs and troubleshooting.
 
 - More objects or text categories can increase processing time and GPU memory use.
 - Optional **Group Object Parts** is heuristic and can group incorrectly.
-- Toolbox feature coordinates are video pixels, not geographic map locations.
+- CSV boxes use video pixels. Optional map points require usable FMV metadata
+  and assume flat terrain without terrain correction.
 - Source video is unchanged; annotated MP4 does not retain KLV/MISB telemetry.
 - Validate identity quality and detection accuracy on representative footage.
 

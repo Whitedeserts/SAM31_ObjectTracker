@@ -6,8 +6,6 @@ Toolbox, then browse to this .pyt file.
 import logging
 import os
 import sys
-import re
-from datetime import datetime
 
 import arcpy
 
@@ -26,7 +24,7 @@ _TOOLBOX_SRC_MODULES = (
     "detection_manager", "arcgis_export", "video_reader", "track_state", "result_store",
     "sam31_runtime.sam31_session",
     "streaming_session_pool", "track_quality", "logical_groups",
-    "model_package", "text_prompts",
+    "model_package", "text_prompts", "output_naming", "fmv_georeferencing", "geospatial_export", "frame_timestamps",
 )
 
 
@@ -80,6 +78,15 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 
+# ArcGIS can restore sys.path between loading this file and invoking callbacks.
+# Bind this release's lightweight naming helper by path for the dialog lifetime.
+import importlib.util
+_naming_spec = importlib.util.spec_from_file_location(
+    "_sam31_toolbox_output_naming", os.path.join(SRC_DIR, "output_naming.py"))
+_output_naming = importlib.util.module_from_spec(_naming_spec)
+_naming_spec.loader.exec_module(_output_naming)
+
+
 def value_or_default(parameter, default):
     """Zero is an explicit setting, particularly for loss grace periods."""
     return default if parameter.value in (None, "") else parameter.value
@@ -129,7 +136,7 @@ class SAM31TextPromptTrackingTool:
             "See USER_GUIDE.md for formats and validation limits."
         )
         self.canRunInBackground = False
-        self._generated_paths = {}
+        self._naming = _output_naming.OutputNamingState()
 
     # ------------------------------------------------------------------ params
     def getParameterInfo(self):
@@ -154,23 +161,15 @@ class SAM31TextPromptTrackingTool:
             displayName="Text Prompts (separate with commas or semicolons)",
             name="text_prompt", datatype="GPString", parameterType="Required", direction="Input")
 
-        out_feature_class = arcpy.Parameter(
-            displayName="Pixel-Space Feature Class (Not Georeferenced)", name="out_feature_class", datatype="DEFeatureClass",
-            parameterType="Optional", direction="Output", category="Output Paths (optional overrides)")
-        out_feature_class.enabled = False
-
         output_folder = arcpy.Parameter(displayName="Output Folder", name="output_folder",
             datatype="DEFolder", parameterType="Required", direction="Input")
         run_name = arcpy.Parameter(displayName="Run Name", name="run_name",
             datatype="GPString", parameterType="Required", direction="Input")
+        run_name.description = "Base name for generated outputs. Changing it updates generated paths while preserving explicit path overrides. Use 1-100 letters, numbers or underscores, starting with a letter. Existing outputs are replaced only when ArcGIS overwrite is enabled."
         run_mode = arcpy.Parameter(displayName="Process", name="run_mode",
             datatype="GPString", parameterType="Required", direction="Input")
         run_mode.filter.list = ["Full video", "Short trial"]
         run_mode.value = "Full video"
-        export_features = arcpy.Parameter(displayName="Export Pixel-Space Feature Class (Not Georeferenced)",
-            name="export_features", datatype="GPBoolean", parameterType="Optional", direction="Input",
-            category="Outputs")
-        export_features.value = False
 
         detection_interval = arcpy.Parameter(
             displayName="Detection Interval (frames between re-detection passes)",
@@ -262,7 +261,6 @@ class SAM31TextPromptTrackingTool:
         lost_grace_frames.description = "Number of missing frames to retain an occluded object's ID before ending its track."
         out_of_frame_grace_frames.description = "Number of missing frames to retain a track last seen at an image edge."
         save_annotated_video.description = "Visual review copy without KLV/MISB metadata. Disabling saves drawing and encoding time."
-        out_feature_class.description = "Optional bounding-box polygons in video pixel coordinates, not geographic map locations."
         max_frames.description = "A short trial processes the first 90 frames by default. Initial model preparation still applies."
         text_prompt.description = "Enter one or more object categories, separated by commas or semicolons, for example car; swimming pool or car, swimming pool. Each category is searched separately using the same model. More categories increase detection time. All categories share the simultaneous-object limit. Each track keeps its initial category label."
         for parameter in (save_annotated_video, export_csv):
@@ -286,13 +284,23 @@ class SAM31TextPromptTrackingTool:
         group_release.value = 1.
         group_release.enabled = False
         group_release.description = "How long separation evidence must persist before grouped tracks become independent again. Temporary missing observations do not count as separation."
+        export_geospatial = arcpy.Parameter(displayName="Export Geospatial Detection Points (FMV)",
+            name="export_geospatial", datatype="GPBoolean", parameterType="Optional",
+            direction="Input", category="Outputs")
+        export_geospatial.value = False
+        export_geospatial.description = "Approximate geographic box centroids from valid KLV frame corners and source or recovered frame timestamps. Flat-ground assumption; no terrain correction. Skips unusable metadata without stopping other exports."
+        geospatial_path = arcpy.Parameter(displayName="Output Geospatial Detections",
+            name="geospatial_path", datatype="DEFeatureClass", parameterType="Optional",
+            direction="Output", category="Output Paths (optional overrides)")
+        geospatial_path.enabled = False
+        geospatial_path.description = "WGS 84 points for visible observations with usable FMV metadata. Named Run_Name_Detections. Existing outputs can be replaced when ArcGIS overwrite is enabled."
         return [in_video, text_prompt, output_folder, model_package, run_name, run_mode, max_frames,
-                export_csv, save_annotated_video, export_features, csv_path, annotated_video_path,
-                out_feature_class, detection_interval, confidence_threshold,
+                export_csv, save_annotated_video, csv_path, annotated_video_path,
+                detection_interval, confidence_threshold,
                 max_objects, iou_threshold, centroid_threshold,
                 lost_grace_frames, out_of_frame_grace_frames, min_valid_mask_area,
                 min_track_confidence, hide_box_when_lost, show_lost_status,
-                group_vehicle, group_confirm, group_release]
+                group_vehicle, group_confirm, group_release, export_geospatial, geospatial_path]
 
     def isLicensed(self):
         return True
@@ -303,27 +311,8 @@ class SAM31TextPromptTrackingTool:
         for key in ('group_confirm', 'group_release'):
             p[key].enabled = bool(p['group_vehicle'].value)
 
-        if not p["run_name"].valueAsText and p["in_video"].valueAsText:
-            stem = os.path.splitext(os.path.basename(p["in_video"].valueAsText))[0]
-            stem = re.sub(r"[^A-Za-z0-9_]", "_", stem)[:60]
-            p["run_name"].value = "Tracks_" + stem + "_" + datetime.now().strftime("%Y%m%d_%H%M%S")
+        self._naming.update(p)
         p["max_frames"].enabled = p["run_mode"].valueAsText == "Short trial"
-        folder, name = p["output_folder"].valueAsText, p["run_name"].valueAsText
-        defaults = {}
-        if folder and name:
-            defaults = {
-                "csv_path": os.path.join(folder, name + ".csv"),
-                "annotated_video_path": os.path.join(folder, name + "_annotated.mp4"),
-                "out_feature_class": os.path.join(folder, "SAM31_Tracks.gdb", name + "_pixels"),
-            }
-        for key, toggle in (("csv_path", "export_csv"), ("annotated_video_path", "save_annotated_video"),
-                            ("out_feature_class", "export_features")):
-            parameter = p[key]
-            parameter.enabled = bool(p[toggle].value)
-            if key in defaults and (not parameter.valueAsText or
-                    parameter.valueAsText == self._generated_paths.get(key)):
-                parameter.value = defaults[key]
-                self._generated_paths[key] = defaults[key]
 
     def updateMessages(self, parameters):
         p = {par.name: par for par in parameters}
@@ -359,11 +348,13 @@ class SAM31TextPromptTrackingTool:
         folder = p["output_folder"].valueAsText
         if folder and not os.path.isdir(folder):
             p["output_folder"].setErrorMessage("Choose an existing output folder.")
-        if not any(bool(p[key].value) for key in ("export_csv", "save_annotated_video", "export_features")):
+        if not any(bool(p[key].value) for key in ("export_csv", "save_annotated_video", "export_geospatial")):
             p["export_csv"].setErrorMessage("Select at least one output.")
         name = p["run_name"].valueAsText
-        if name and not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,99}", name):
-            p["run_name"].setErrorMessage("Use 1-100 letters, numbers or underscores; start with a letter.")
+        try:
+            _output_naming.validate_run_name(name)
+        except ValueError as exc:
+            p['run_name'].setErrorMessage(str(exc))
         for key in ("detection_interval", "max_objects"):
             if p[key].value is not None and int(p[key].value) < 1:
                 p[key].setErrorMessage("Enter a positive whole number.")
@@ -377,13 +368,29 @@ class SAM31TextPromptTrackingTool:
         for key in ("confidence_threshold", "min_track_confidence", "iou_threshold"):
             if p[key].value is not None and not 0 <= float(p[key].value) <= 1:
                 p[key].setErrorMessage("Enter a value between 0 and 1.")
-        if p["export_features"].value and p["out_feature_class"].valueAsText:
-            if ".gdb" + os.sep not in os.path.normpath(p["out_feature_class"].valueAsText).lower():
-                p["out_feature_class"].setErrorMessage("Choose a feature class inside a file geodatabase (.gdb).")
-        for key, toggle in (("csv_path", "export_csv"), ("annotated_video_path", "save_annotated_video"),
-                            ("out_feature_class", "export_features")):
-            if p[toggle].value and not p[key].valueAsText:
+        enabled_paths = []
+        for key, toggle in _output_naming.OUTPUT_TOGGLES.items():
+            if not p[toggle].value:
+                continue
+            path = p[key].valueAsText
+            if not path:
                 p[key].setErrorMessage("Choose an output folder and run name, or enter an output path.")
+                continue
+            try:
+                if key == 'geospatial_path':
+                    _output_naming.validate_feature_path(path)
+                _output_naming.require_output_writable(path)
+                if _output_naming.output_exists(path):
+                    p[key].setWarningMessage("This output already exists and will be replaced when you run the tool.")
+                enabled_paths.append((key, path))
+            except (ValueError, FileExistsError) as exc:
+                p[key].setErrorMessage(str(exc))
+        canonical = _output_naming.canonical
+        seen = {canonical(p['in_video'].valueAsText)}
+        for key, path in enabled_paths:
+            if canonical(path) in seen:
+                p[key].setErrorMessage('Source and enabled output paths must be distinct.')
+            seen.add(canonical(path))
 
     # ------------------------------------------------------------------ run
     def execute(self, parameters, messages):
@@ -395,8 +402,6 @@ class SAM31TextPromptTrackingTool:
             raise arcpy.ExecuteError("Correct the highlighted parameters before running.")
         video_path = p["in_video"].valueAsText
         text_prompt = p["text_prompt"].valueAsText
-        export_features = bool(p["export_features"].value)
-        out_gdb, out_name = pipeline.split_gdb_fc_path(p["out_feature_class"].valueAsText) if export_features else (None, None)
 
         detection_interval = int(value_or_default(p["detection_interval"], 30))
         confidence_threshold = float(value_or_default(p["confidence_threshold"], 0.35))
@@ -468,23 +473,26 @@ class SAM31TextPromptTrackingTool:
 
         from logical_groups import GroupConfig
         result = pipeline.run_pipeline_and_export(
-            video_path, text_prompt, out_gdb, out_name,
+            video_path, text_prompt,
             detection_interval=detection_interval, confidence_threshold=confidence_threshold,
             max_objects=max_objects, iou_threshold=iou_threshold, centroid_threshold=centroid_threshold,
             max_frames=max_frames, save_annotated_video=save_annotated_video,
             annotated_video_path=annotated_video_path, export_csv_flag=export_csv_flag,
             out_csv_path=csv_path, logger=logger, progress_cb=progress_cb,
             state_config=state_config, return_results=False,
-            export_feature_class_flag=export_features, stage_cb=arcpy.SetProgressorLabel,
+            export_feature_class_flag=False, stage_cb=arcpy.SetProgressorLabel,
             model_package_path=p['model_package'].valueAsText,
+            geospatial_path=p['geospatial_path'].valueAsText if p['export_geospatial'].value else None,
+            run_name=p['run_name'].valueAsText,
             group_config=(GroupConfig(enabled=True,
                 confirm_seconds=float(value_or_default(p['group_confirm'], .5)),
                 release_seconds=float(value_or_default(p['group_release'], 1.)))
                 if p['group_vehicle'].value else GroupConfig()),
         )
 
-        if result['feature_class']:
-            arcpy.AddMessage(f"Wrote pixel-space feature class (NOT georeferenced): {result['feature_class']}")
+        if result.get('geospatial_path'):
+            arcpy.AddMessage("Wrote approximate geographic detection points: " + result['geospatial_path'])
+        p['geospatial_path'].value = result.get('geospatial_path')
         if result["csv_path"]:
             arcpy.AddMessage(f"Wrote CSV: {result['csv_path']}")
         if result["annotated_video"]:
@@ -506,7 +514,7 @@ class SAM31TextPromptTrackingTool:
                 tracks_terminated=perf.get("tracks_terminated", 0),
                 same_id_recoveries=perf.get("same_id_recoveries", 0)))
 
-        for key, result_key in (("out_feature_class", "feature_class"), ("csv_path", "csv_path"),
+        for key, result_key in (("csv_path", "csv_path"),
                                 ("annotated_video_path", "annotated_video")):
             p[key].value = result[result_key]
         arcpy.ResetProgressor()

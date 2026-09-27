@@ -240,7 +240,7 @@ def run_pipeline_and_export(video_path, text_prompt, out_gdb=None, out_name=None
                              max_frames: Optional[int] = None,
                              save_annotated_video: bool = True, annotated_video_path: Optional[str] = None,
                              export_csv_flag: bool = True, out_csv_path: Optional[str] = None,
-                             geometry: str = "polygon", logger=None,
+                             geometry: str = "point", logger=None,
                              progress_cb: Optional[Callable[[int, int], None]] = None,
                              runtime: Optional[SAM31VideoRuntime] = None,
                              warm_up_detector: bool = True,
@@ -248,7 +248,8 @@ def run_pipeline_and_export(video_path, text_prompt, out_gdb=None, out_name=None
                              state_config: Optional[TrackStateConfig] = None,
                              return_results: bool = True, export_feature_class_flag: bool = True,
                              stage_cb: Optional[Callable[[str], None]] = None,
-                             model_package_path: Optional[str] = None, group_config=None) -> dict:
+                             model_package_path: Optional[str] = None, group_config=None,
+                             geospatial_path=None, run_name=None) -> dict:
     """Single entry point: load the model (unless an already-loaded `runtime` is
     passed in), run the pipeline once, export CSV + feature class, return a
     result dict. Owns and shuts down the runtime unless the caller supplied one.
@@ -281,8 +282,8 @@ def run_pipeline_and_export(video_path, text_prompt, out_gdb=None, out_name=None
         raise ValueError("Choose a file-geodatabase feature-class path or disable feature-class export")
     if export_csv_flag and not out_csv_path:
         raise ValueError("A CSV output path is required when exporting CSV")
-    if not any((export_csv_flag, export_feature_class_flag, save_annotated_video)):
-        raise ValueError("Select at least one output: CSV, annotated video, or pixel-space feature class")
+    if not any((export_csv_flag, export_feature_class_flag, save_annotated_video, geospatial_path)):
+        raise ValueError("Select at least one output: CSV, annotated video, pixel-space features, or geospatial points")
     if detection_interval <= 0 or max_objects <= 0 or memory_log_every <= 0:
         raise ValueError("Detection interval, max objects and memory logging interval must be positive")
     if max_frames is not None and max_frames <= 0:
@@ -291,7 +292,18 @@ def run_pipeline_and_export(video_path, text_prompt, out_gdb=None, out_name=None
         raise ValueError("An annotated output path is required when saving video")
     validate_output_paths(video_path, annotated_video_path if save_annotated_video else None,
                           out_csv_path if export_csv_flag else None,
-                          os.path.join(out_gdb, out_name) if export_feature_class_flag else None)
+                          os.path.join(out_gdb, out_name) if export_feature_class_flag else None, geospatial_path)
+    from output_naming import require_output_writable, validate_feature_path, validate_run_name, output_exists
+    for path in (annotated_video_path if save_annotated_video else None,
+                 out_csv_path if export_csv_flag else None,
+                 os.path.join(out_gdb, out_name) if export_feature_class_flag else None, geospatial_path):
+        if path:
+            require_output_writable(path)
+            if output_exists(path) and logger:
+                logger.warning("This output already exists and will be replaced: %s", path)
+    if geospatial_path:
+        validate_run_name(run_name)
+        validate_feature_path(geospatial_path)
     stage("Validating video input...")
     probe = validate_video(video_path)
     if logger:
@@ -378,11 +390,26 @@ def run_pipeline_and_export(video_path, text_prompt, out_gdb=None, out_name=None
                 if logger:
                     logger.warning("%s", message)
 
+        geo_written, geo_counts = None, {}
+        if geospatial_path:
+            stage("Exporting geospatial detection points...")
+            try:
+                from geospatial_export import export_geospatial_points
+                geo_written, geo_counts = export_geospatial_points(df, geospatial_path,
+                    video=video_path, run_name=run_name, probe=probe, logger=logger)
+            except Exception as exc:
+                message = f"Geospatial export failed at {geospatial_path}: {exc}. Other completed outputs remain available."
+                export_errors.append(message)
+                if logger:
+                    logger.warning("%s", message)
+
         performance = tm.performance_summary()
         performance["warm_up_ms"] = round(warm_up_ms, 0) if warm_up_ms is not None else None
         performance["peak_ram_mb"] = getattr(tm, "peak_rss_mb", None)
         return {
             "results": df if return_results else None,
+            "geospatial_path": geo_written,
+            "geospatial_counts": geo_counts,
             "csv_path": csv_path,
             "feature_class": fc_path,
             "annotated_video": annotated_video_path if save_annotated_video else None,

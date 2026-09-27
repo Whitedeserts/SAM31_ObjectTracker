@@ -7,6 +7,8 @@ projected to ground coordinates. Derived video contains no KLV/MISB telemetry.
 from __future__ import annotations
 
 import os
+import tempfile
+from output_naming import require_new_output, require_output_writable, overwrite_allowed
 from typing import Optional
 
 import numpy as np
@@ -15,12 +17,31 @@ import pandas as pd
 
 def export_csv(df: pd.DataFrame, out_path: str) -> str:
     os.makedirs(os.path.dirname(os.path.abspath(out_path)) or ".", exist_ok=True)
-    df.to_csv(out_path, index=False)
+    require_output_writable(out_path)
+    fd, staged = tempfile.mkstemp(prefix='.sam31_', suffix='.csv',
+                                  dir=os.path.dirname(os.path.abspath(out_path)))
+    os.close(fd)
+    try:
+        df.to_csv(staged, index=False)
+        require_output_writable(out_path)
+        if overwrite_allowed():
+            os.replace(staged, out_path)
+        else:
+            # Windows rename refuses an existing destination, including races.
+            if os.name == "nt":
+                os.rename(staged, out_path)
+            else:
+                os.link(staged, out_path)
+    except PermissionError as exc:
+        raise PermissionError(f'Cannot replace CSV output {out_path}. Close any application using it.') from exc
+    finally:
+        if os.path.exists(staged):
+            os.unlink(staged)
     return out_path
 
 
 def export_feature_class(df: pd.DataFrame, out_gdb: str, out_name: str,
-                          geometry: str = "polygon") -> Optional[str]:
+                          geometry: str = "point") -> Optional[str]:
     """Write the tracks to a file geodatabase feature class in pixel space.
 
     geometry: "polygon" (the full box) or "point" (box centroid).
@@ -37,14 +58,14 @@ def export_feature_class(df: pd.DataFrame, out_gdb: str, out_name: str,
         arcpy.management.CreateFileGDB(os.path.dirname(out_gdb), os.path.basename(out_gdb))
 
     fc_path = os.path.join(out_gdb, out_name)
-    if arcpy.Exists(fc_path):
-        arcpy.management.Delete(fc_path)
+    require_new_output(fc_path)
 
     # Pixel space -- see module docstring. Omitting spatial_reference (rather than passing
     # an empty arcpy.SpatialReference()) is required: arcpy accepts the omission but rejects
     # an explicit "unknown" SpatialReference object with ERROR 000614 (confirmed on 3.7).
     geom_type = "POLYGON" if geometry == "polygon" else "POINT"
-    arcpy.management.CreateFeatureclass(out_gdb, out_name, geom_type)
+    with arcpy.EnvManager(overwriteOutput=False):
+        arcpy.management.CreateFeatureclass(out_gdb, out_name, geom_type)
     fields = [
         ("frame_number", "LONG"), ("timestamp", "DOUBLE"),
         # source_timestamp is the container presentation timestamp, kept
@@ -214,6 +235,12 @@ class AnnotatedVideoWriter:
         os.makedirs(os.path.dirname(os.path.abspath(out_path)) or ".", exist_ok=True)
         import cv2
 
+        require_output_writable(out_path)
+        try:
+            with open(out_path, "wb" if overwrite_allowed() else "xb"):
+                pass
+        except PermissionError as exc:
+            raise PermissionError(f"Cannot replace video output {out_path}. Close its video player or preview.") from exc
         fourcc = cv2.VideoWriter_fourcc(*"mp4v")
         self.writer = cv2.VideoWriter(out_path, fourcc, fps or 24.0, (width, height))
         if not self.writer.isOpened():
