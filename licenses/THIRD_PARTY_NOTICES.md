@@ -26,7 +26,7 @@ prerequisites and are not redistributed here. Their own terms apply. No Esri
 binaries, SDK, ArcGIS installation, sample media, datasets or standalone CLIP model
 are included. This distribution does not grant an ArcGIS license.
 
-The companion checkpoint and vocabulary hashes are recorded in [VERSION.json](../VERSION.json).
+The companion checkpoint and vocabulary hashes are verified by [the package validator](../src/model_package.py).
 This repository contains no model weights or vocabulary archive.
 
 ## License scope

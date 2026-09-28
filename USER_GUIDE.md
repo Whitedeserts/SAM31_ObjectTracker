@@ -33,7 +33,7 @@ the original development repository and custom PYTHONPATH are unnecessary.
 
 Select **SAM 3.1 Model Package (.dlpk)**. This is a local file selector, not an
 upload. This release accepts the pinned SAM 3.1 Object Multiplex checkpoint and
-CLIP vocabulary identified in `VERSION.json`. Fine-tuned or other SAM versions
+CLIP vocabulary verified by `src/model_package.py`. Fine-tuned or other SAM versions
 are rejected rather than loaded with an incompatible architecture. The EMD must
 be at the archive root and reference `model/sam3.1_multiplex.pt`. The vocabulary
 must be `model/bpe_simple_vocab_16e6.txt.gz`. `config.json` is provenance only;
