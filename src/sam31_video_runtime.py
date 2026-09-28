@@ -287,8 +287,7 @@ class SAM31VideoRuntime:
 
         Bypasses Sam3BasePredictor.start_session and calls
         self.detector.model.init_state directly, then registers the session
-        by hand. This works around a reproduced upstream bug (documented as
-        "U1" in SAM31_ObjectTracker/PATCHES.md): start_session always
+        by hand. The upstream start_session always
         forwards offload_state_to_cpu= but
         Sam3MultiplexTrackingWithInteractivity.init_state does not accept
         that keyword. No vendored code is modified; this is a call-site

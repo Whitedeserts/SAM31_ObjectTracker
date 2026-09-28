@@ -13,7 +13,7 @@ from sam3.model.data_misc import (
     FindStage,
 )
 
-Datapoint = Any  # SAM31 DLPK patch: dataset module not vendored (see PATCHES.md)
+Datapoint = Any  # Avoid an optional training-dataset dependency during inference imports.
 
 
 MyTensor = Union[torch.Tensor, List[Any]]

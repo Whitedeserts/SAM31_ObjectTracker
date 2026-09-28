@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | SAM 3.1 model and SAM source | [Meta SAM License](https://huggingface.co/facebook/sam3.1/blob/main/LICENSE); supplied verbatim in [SAM_LICENSE](SAM_LICENSE) | Runtime source; checkpoint excluded from this repository |
 | CLIP tokenizer/vocabulary | [OpenAI CLIP MIT License](https://github.com/openai/CLIP/blob/main/LICENSE); [CLIP_LICENSE](CLIP_LICENSE) | Adapted tokenizer source; vocabulary excluded from this repository |
-| Windows EDT compatibility adaptation | Existing Meta-copyright SAM code obtained from the ArcGIS Living Atlas SAM package with its SAM License | Preserved adaptation; provenance in [runtime patch notes](../SAM31_ObjectTracker/PATCHES.md) |
+| Windows EDT compatibility adaptation | Existing Meta-copyright SAM code obtained from the ArcGIS Living Atlas SAM package with its SAM License | Preserved adaptation in `sam3/model/edt.py`; upstream copyright retained |
 | Original ArcGIS integration | [Apache License 2.0](APACHE_LICENSE); independently authored contributions only, as described below | Custom toolbox and supporting integration code |
 
 SAM source is pinned to commit `660a5e9e1b8b4c02c0ad97229b88a09a6e4ff5b7` of

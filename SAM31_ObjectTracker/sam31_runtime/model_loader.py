@@ -1,7 +1,7 @@
 """Build the SAM 3.1 Object-Multiplex tracker once, from local assets only.
 
 Builder: `sam3.model_builder.build_sam3_multiplex_video_model` (pinned upstream
-commit in SAM31_VERSION.json). The checkpoint `sam3.1_multiplex.pt` stores the
+commit recorded in licenses/THIRD_PARTY_NOTICES.md). The checkpoint `sam3.1_multiplex.pt` stores the
 tracker under `tracker.model.*` and the shared ViT trunk under
 `detector.backbone.vision_backbone.*`; the tracker's own `backbone` module is
 the same `Sam3TriViTDetNeck` architecture, so the trunk weights are remapped
