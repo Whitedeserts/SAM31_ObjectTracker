@@ -21,8 +21,7 @@ Before using the toolbox, make sure the following are installed and available:
 > Deep Learning Libraries, model loading/inference will fail.
 
 The documented tested setup uses **ArcGIS Pro 3.7 on Windows** with matching
-Esri Deep Learning Libraries. Other versions have not been validated. Testing
-used a GPU with approximately **12 GB of memory**; this is not a verified minimum.
+Esri Deep Learning Libraries. If you're using a different version of ArcGIS Pro, you may encounter different functionality and results.
 See the [user guide prerequisites](USER_GUIDE.md#prerequisites) for the recorded
 Python/PyTorch/CUDA setup, memory considerations and FFmpeg/ffprobe requirements.
 
