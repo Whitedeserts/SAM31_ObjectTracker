@@ -4,10 +4,32 @@ Detect objects from text prompts and track them through local video using SAM 3.
 Object Multiplex. Export tracking observations to CSV, annotated MP4 and optional
 geospatial detection points from compatible FMV metadata.
 
+## Requirements
+
+Before using the toolbox, make sure the following are installed and available:
+
+- **ArcGIS Pro on Windows** — [see software access options](https://learn.arcgis.com/en/become-a-member/).
+- **ArcGIS Image Analyst** — required for the workflow, with a license available in ArcGIS Pro.
+- **Deep Learning Libraries for ArcGIS Pro** — install the libraries that match your
+  ArcGIS Pro version using [Esri's installation instructions](https://pro.arcgis.com/en/pro-app/latest/help/analysis/deep-learning/install-deep-learning-frameworks.htm).
+- **A compatible NVIDIA CUDA GPU and driver** — CPU-only inference is unsupported.
+- **A compatible SAM 3.1 DLPK** — obtained separately; model weights are not included.
+
+> **Important:** Install the Deep Learning Libraries in the ArcGIS Pro Python
+> environment you will use **before running the toolbox**. This project does not
+> install ArcGIS Pro, extensions or Python dependencies automatically. Without the
+> Deep Learning Libraries, model loading/inference will fail.
+
+The documented tested setup uses **ArcGIS Pro 3.7 on Windows** with matching
+Esri Deep Learning Libraries. Other versions have not been validated. Testing
+used a GPU with approximately **12 GB of memory**; this is not a verified minimum.
+See the [user guide prerequisites](USER_GUIDE.md#prerequisites) for the recorded
+Python/PyTorch/CUDA setup, memory considerations and FFmpeg/ffprobe requirements.
+
 ## Quick start
 
-1. Use ArcGIS Pro 3.7 on Windows, matching Esri deep-learning libraries and a
-   compatible NVIDIA CUDA GPU. See [prerequisites](USER_GUIDE.md#prerequisites).
+1. Complete the [requirements](#requirements), including the Deep Learning Libraries installation,
+   before adding or running the toolbox.
 2. Select **Code > Download ZIP** and extract the complete repository, or clone it.
 3. In ArcGIS Pro, choose **Catalog > Toolboxes > Add Toolbox** and select
    **SAM31_TextPromptTracker.pyt** from the extracted folder.

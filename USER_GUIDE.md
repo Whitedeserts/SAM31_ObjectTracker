@@ -2,15 +2,27 @@
 
 ## Prerequisites
 
+**ArcGIS Pro on Windows and ArcGIS Image Analyst are required for this workflow.**
+See [ArcGIS software access options](https://learn.arcgis.com/en/become-a-member/)
+and ensure an Image Analyst license is available in ArcGIS Pro.
+
+**Install the Deep Learning Libraries for ArcGIS Pro before using the toolbox.**
+Follow [Esri's official installation instructions](https://pro.arcgis.com/en/pro-app/latest/help/analysis/deep-learning/install-deep-learning-frameworks.htm)
+and use the libraries matching your ArcGIS Pro version in the ArcGIS Pro Python
+environment selected for running the tool. The toolbox does not install these
+dependencies automatically. Without them, model loading/inference will fail.
+
 The tested environment is Windows with ArcGIS Pro 3.7, its matching 3.7
 deep-learning libraries, Python 3.13, PyTorch 2.9.1 with CUDA 12.9 and
 torchvision 0.25.0. Use the matching Esri-supported deep-learning installation
 for Pro; the tool does not install dependencies or modify Conda environments.
-Other versions have not been validated.
+These package versions describe the recorded test environment, not a request to
+install or upgrade PyTorch/CUDA independently of Esri's instructions. Other versions
+have not been validated.
 
 A compatible NVIDIA CUDA GPU and driver are required. CPU-only inference is
-unsupported. Testing used approximately 12 GB of GPU memory capacity; memory
-needs depend on frames and active objects. Close other GPU-heavy applications.
+unsupported. Testing used approximately 12 GB of GPU memory capacity; this is not a verified
+minimum. Memory needs depend on frames and active objects. Close other GPU-heavy applications.
 Provide system RAM and disk space for model loading, extracted assets and output
 tables. One model cache uses approximately 3.3 GiB, plus temporary extraction
 space; damaged caches are preserved until manually removed.
@@ -28,8 +40,9 @@ on Windows. Required external dependencies are not bundled or installed by the t
 
 Extract the entire ZIP; folder names may contain spaces. In Catalog, right-click
 Toolboxes, choose Add Toolbox, and select `SAM31_TextPromptTracker.pyt`.
-Do not copy the `.pyt` alone. The release includes all project runtime source;
-the original development repository and custom PYTHONPATH are unnecessary.
+Do not copy the `.pyt` alone. The release includes the project runtime source,
+but still requires the external ArcGIS software and Deep Learning Libraries
+listed above. The original development repository and custom PYTHONPATH are unnecessary.
 
 Select **SAM 3.1 Model Package (.dlpk)**. This is a local file selector, not an
 upload. This release accepts the pinned SAM 3.1 Object Multiplex checkpoint and
