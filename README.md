@@ -9,7 +9,7 @@ geospatial detection points from compatible FMV metadata.
 Before using the toolbox, make sure the following are installed and available:
 
 - **ArcGIS Pro on Windows** ([see software access options](https://learn.arcgis.com/en/become-a-member/)).
-- **ArcGIS Image Analyst** (required for the workflow, with a license available in ArcGIS Pro).
+- **ArcGIS Image Analyst license**.
 - **Deep Learning Libraries for ArcGIS Pro** (install the libraries that match your
   ArcGIS Pro version using [Esri's installation instructions](https://pro.arcgis.com/en/pro-app/latest/help/analysis/deep-learning/install-deep-learning-frameworks.htm)).
 - **A compatible NVIDIA CUDA GPU and driver** (recommended a minimum of 8 GB of dedicated memory).
