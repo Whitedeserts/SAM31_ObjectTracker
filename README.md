@@ -8,12 +8,12 @@ geospatial detection points from compatible FMV metadata.
 
 Before using the toolbox, make sure the following are installed and available:
 
-- **ArcGIS Pro on Windows** — [see software access options](https://learn.arcgis.com/en/become-a-member/).
-- **ArcGIS Image Analyst** — required for the workflow, with a license available in ArcGIS Pro.
-- **Deep Learning Libraries for ArcGIS Pro** — install the libraries that match your
-  ArcGIS Pro version using [Esri's installation instructions](https://pro.arcgis.com/en/pro-app/latest/help/analysis/deep-learning/install-deep-learning-frameworks.htm).
-- **A compatible NVIDIA CUDA GPU and driver** — recommended a minimum of 8 GB of dedicated memory.
-- **A compatible SAM 3.1 DLPK** — obtained from ArcGIS Living Atlas.
+- **ArcGIS Pro on Windows** ([see software access options](https://learn.arcgis.com/en/become-a-member/)).
+- **ArcGIS Image Analyst** (required for the workflow, with a license available in ArcGIS Pro).
+- **Deep Learning Libraries for ArcGIS Pro** (install the libraries that match your
+  ArcGIS Pro version using [Esri's installation instructions](https://pro.arcgis.com/en/pro-app/latest/help/analysis/deep-learning/install-deep-learning-frameworks.htm)).
+- **A compatible NVIDIA CUDA GPU and driver** (recommended a minimum of 8 GB of dedicated memory).
+- **A compatible SAM 3.1 DLPK** ([obtained from ArcGIS Living Atlas] (https://livingatlas.arcgis.com/en/browse/?q=SAM31#q=SAM31&d=2)).
 
 > **Important:** Install the Deep Learning Libraries in the ArcGIS Pro Python
 > environment you will use **before running the toolbox**. This project does not
