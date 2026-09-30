@@ -12,8 +12,8 @@ Before using the toolbox, make sure the following are installed and available:
 - **ArcGIS Image Analyst** — required for the workflow, with a license available in ArcGIS Pro.
 - **Deep Learning Libraries for ArcGIS Pro** — install the libraries that match your
   ArcGIS Pro version using [Esri's installation instructions](https://pro.arcgis.com/en/pro-app/latest/help/analysis/deep-learning/install-deep-learning-frameworks.htm).
-- **A compatible NVIDIA CUDA GPU and driver** — CPU-only inference is unsupported.
-- **A compatible SAM 3.1 DLPK** — obtained separately; model weights are not included.
+- **A compatible NVIDIA CUDA GPU and driver** — recommended a minimum of 8 GB of dedicated memory.
+- **A compatible SAM 3.1 DLPK** — obtained from ArcGIS Living Atlas.
 
 > **Important:** Install the Deep Learning Libraries in the ArcGIS Pro Python
 > environment you will use **before running the toolbox**. This project does not
